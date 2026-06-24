@@ -11,7 +11,7 @@ const registerUserController = catchAsync(
 
     sendResponse(res, {
       success: true,
-      statusCode: status.CREATED,
+      statusCode: httpsStatus.CREATED,
       message: "User Registered Successfully",
       data: user,
     });
