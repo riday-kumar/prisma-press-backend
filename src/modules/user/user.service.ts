@@ -1,7 +1,26 @@
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import bcrypt from "bcrypt";
-import { RegisterUserPayLoad } from "./user.interface";
+import { IUser, RegisterUserPayLoad } from "./user.interface";
+
+const getMyProfile = async (currentUser) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: currentUser.id as string,
+    },
+    omit: {
+      password: true,
+    },
+    include: {
+      profile: true,
+    },
+  });
+
+  if (user?.email !== currentUser.email) {
+    throw new Error("User not found");
+  }
+  return user;
+};
 
 const registerUserIntoDB = async (payLoad: RegisterUserPayLoad) => {
   const { name, email, password, profilePhoto, bio } = payLoad;
@@ -52,5 +71,5 @@ const registerUserIntoDB = async (payLoad: RegisterUserPayLoad) => {
   return user;
 };
 
-const userService = { registerUserIntoDB };
+const userService = { getMyProfile, registerUserIntoDB };
 export default userService;

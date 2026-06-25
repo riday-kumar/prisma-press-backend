@@ -5,3 +5,8 @@ export interface RegisterUserPayLoad {
   profilePhoto?: string;
   bio?: string;
 }
+
+export interface IUser {
+  userId: string;
+  email: string;
+}
