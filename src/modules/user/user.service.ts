@@ -16,9 +16,6 @@ const getMyProfile = async (userId: string) => {
     },
   });
 
-  if (user?.email !== currentUser.email) {
-    throw new Error("User not found");
-  }
   return user;
 };
 
