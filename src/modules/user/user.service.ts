@@ -3,10 +3,10 @@ import { prisma } from "../../lib/prisma";
 import bcrypt from "bcrypt";
 import { IUser, RegisterUserPayLoad } from "./user.interface";
 
-const getMyProfile = async (currentUser) => {
+const getMyProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: {
-      id: currentUser.id as string,
+      id: userId as string,
     },
     omit: {
       password: true,
@@ -71,5 +71,35 @@ const registerUserIntoDB = async (payLoad: RegisterUserPayLoad) => {
   return user;
 };
 
-const userService = { getMyProfile, registerUserIntoDB };
+const updateMyProfileInDB = async (userId: string, payload: any) => {
+  const { id, name, email, profilePhoto, bio } = payload;
+
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      name,
+      email,
+      profile: {
+        update: {
+          profilePhoto,
+          bio,
+        },
+      },
+    },
+
+    omit: {
+      password: true,
+    },
+
+    include: {
+      profile: true,
+    },
+  });
+
+  return updatedUser;
+};
+
+const userService = { getMyProfile, registerUserIntoDB, updateMyProfileInDB };
 export default userService;

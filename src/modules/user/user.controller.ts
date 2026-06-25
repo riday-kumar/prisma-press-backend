@@ -13,7 +13,7 @@ const getMyProfileController = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     console.log("request user", req.user);
 
-    const user = await userService.getMyProfile(req.user);
+    const user = await userService.getMyProfile(req.user?.id as string);
     sendResponse(res, {
       success: true,
       statusCode: httpsStatus.OK,
@@ -36,9 +36,30 @@ const registerUserController = catchAsync(
   },
 );
 
+const updateMyProfileController = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id as string;
+
+    const payload = req.body;
+
+    const updatedProfile = await userService.updateMyProfileInDB(
+      userId,
+      payload,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpsStatus.OK,
+      message: "User Profile Updated Successfully",
+      data: updatedProfile,
+    });
+  },
+);
+
 const userController = {
   getMyProfileController,
   registerUserController,
+  updateMyProfileController,
 };
 
 export default userController;

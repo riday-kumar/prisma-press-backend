@@ -6,4 +6,5 @@ enum ACTIVE_STATUS {
 enum ROLE {
     USER
     ADMIN
+    AUTHOR
 }

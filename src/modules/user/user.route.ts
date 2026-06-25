@@ -26,6 +26,16 @@ declare global {
 
 router.post("/register", userController.registerUserController);
 
-router.get("/me", auth("ADMIN", "USER"), userController.getMyProfileController);
+router.get(
+  "/me",
+  auth("ADMIN", "USER", "AUTHOR"),
+  userController.getMyProfileController,
+);
+
+router.put(
+  "/my-profile",
+  auth(ROLE.USER, ROLE.ADMIN, ROLE.AUTHOR),
+  userController.updateMyProfileController,
+);
 
 export const userRoutes = router;
