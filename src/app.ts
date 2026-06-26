@@ -6,6 +6,8 @@ import cors from "cors";
 
 import { userRoutes } from "./modules/user/user.route";
 import { authRoute } from "./modules/auth/auth.route";
+import { commentRoute } from "./modules/comment/comment.route";
+import { postRoute } from "./modules/post/post.route";
 
 const app: Application = express();
 // middlewares
@@ -24,5 +26,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoute);
+app.use("/api/comments", commentRoute);
+app.use("/api/posts", postRoute);
 
 export default app;
