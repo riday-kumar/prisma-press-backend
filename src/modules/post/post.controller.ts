@@ -17,13 +17,40 @@ const allPostController = catchAsync(
   },
 );
 
-const postStaticsController = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+const getPostByIdController = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.postId;
+
+    if (!id) {
+      throw new Error("Post ID is required In Params");
+    }
+
+    const result = await postService.getPostById(id as string);
+    sendResponse(res, {
+      success: true,
+      statusCode: status.OK,
+      message: "Post retrieved successfully",
+      data: result,
+    });
+  },
 );
+
 const myPostController = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+
+    const result = await postService.myPost(userId as string);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: status.OK,
+      message: "Posts retrieved successfully",
+      data: result,
+    });
+  },
 );
-const singlePostController = catchAsync(
+
+const postStaticsController = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {},
 );
 
@@ -42,18 +69,61 @@ const createPostController = catchAsync(
     });
   },
 );
+
 const updatePostController = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const postId = req.params.postId;
+    if (!postId) {
+      throw new Error("post does not exists");
+    }
+
+    const payLoad = req.body;
+    // console.log(payLoad);
+
+    const result = await postService.updatePost(
+      postId as string,
+      payLoad,
+      authorId as string,
+      isAdmin,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: status.OK,
+      message: "Post updated successfully",
+      data: result,
+    });
+  },
 );
 const DeletePostController = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const postId = req.params.postId;
+    if (!postId) {
+      throw new Error("post does not exists");
+    }
+
+    await postService.DeletePost(postId as string, authorId as string, isAdmin);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: status.OK,
+      message: "Post Deleted Successfully",
+      data: null,
+    });
+  },
 );
 
 export const postController = {
   allPostController,
   postStaticsController,
   myPostController,
-  singlePostController,
+  getPostByIdController,
   createPostController,
   updatePostController,
   DeletePostController,

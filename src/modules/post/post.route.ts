@@ -5,18 +5,22 @@ import { ROLE } from "../../../generated/prisma/enums";
 
 const route = Router();
 route.get("/", postController.allPostController);
+
 route.get(
   "/my-posts",
   auth(ROLE.ADMIN, ROLE.USER, ROLE.AUTHOR),
   postController.myPostController,
 );
-route.get("/:postId", postController.singlePostController);
+
+route.get("/:postId", postController.getPostByIdController);
+
 route.get("/stats", auth(ROLE.ADMIN), postController.postStaticsController);
 route.post(
   "/",
   auth(ROLE.ADMIN, ROLE.USER, ROLE.AUTHOR),
   postController.createPostController,
 );
+
 route.patch(
   "/:postId",
   auth(ROLE.ADMIN, ROLE.USER, ROLE.AUTHOR),
