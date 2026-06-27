@@ -7,6 +7,13 @@ import status from "http-status";
 const allPostController = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await postService.allPost();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: status.OK,
+      message: "Posts retrieved successfully",
+      data: result,
+    });
   },
 );
 
