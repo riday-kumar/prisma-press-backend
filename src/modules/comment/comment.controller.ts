@@ -39,7 +39,7 @@ const createCommentController = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: status.CREATED,
-      message: "Post created successfully",
+      message: "Comment created successfully",
       data: result,
     });
   },
@@ -86,12 +86,11 @@ const deleteCommentByOwnerController = catchAsync(
 const moderateCommentController = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const commentId = req.params.commentId as string;
-    const userRole = req.user?.role;
     const result = await commentService.updateCommentByAdminService(commentId);
 
     sendResponse(res, {
       success: true,
-      statusCode: status.CREATED,
+      statusCode: status.OK,
       message: "Comment Rejected successfully",
       data: result,
     });

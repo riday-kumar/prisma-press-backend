@@ -6,7 +6,9 @@ import status from "http-status";
 
 const allPostController = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await postService.allPost();
+    // const {title, content,searchTerm, limit, page, sortBy,sortOrder} = req.query;
+
+    const result = await postService.allPost(req.query);
 
     sendResponse(res, {
       success: true,

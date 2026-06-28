@@ -1,28 +1,18 @@
 import { CommentStatus, ROLE } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
-
-interface ICommentPostPayLoad {
-  content: string;
-  postId: string;
-  authorId: string;
-}
-
-interface ICommentUpdatePayLoad {
-  content?: string;
-}
+import {
+  ICommentPostPayLoad,
+  ICommentUpdatePayLoad,
+} from "./comment.interface";
 
 const createCommentService = async (payload: ICommentPostPayLoad) => {
   const { content, postId, authorId } = payload;
 
-  const checkPost = await prisma.post.findUnique({
+  const checkPost = await prisma.post.findUniqueOrThrow({
     where: {
       id: postId,
     },
   });
-
-  if (!checkPost) {
-    throw new Error("Post not found");
-  }
 
   const result = await prisma.comment.create({
     data: {
@@ -42,8 +32,9 @@ const commentListByAuthorService = async (authorId: string) => {
   });
   return result;
 };
-const singleCommentService = async (id) => {
-  const comment = await prisma.comment.findUnique({
+
+const singleCommentService = async (id: string) => {
+  const comment = await prisma.comment.findUniqueOrThrow({
     where: {
       id,
     },
@@ -61,6 +52,7 @@ const updateCommentByOwnerService = async (
       id: commentId,
     },
   });
+
   if (!comment) {
     throw new Error("Comment not found");
   }
@@ -71,7 +63,6 @@ const updateCommentByOwnerService = async (
   const result = await prisma.comment.update({
     where: {
       id: commentId,
-      authorId: userId,
     },
     data: {
       ...payLoad,
@@ -102,7 +93,7 @@ const deleteCommentByOwnerService = async (
       id: commentId,
     },
   });
-  console.log(checkComment);
+  // console.log(checkComment);
   if (!checkComment) {
     throw new Error("Comment not found");
   }
@@ -119,6 +110,20 @@ const deleteCommentByOwnerService = async (
 };
 
 const updateCommentByAdminService = async (id: string) => {
+  const comment = await prisma.comment.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+
+  if (comment.status === CommentStatus.REJECT) {
+    throw new Error("Comment is already rejected");
+  }
+
   const result = await prisma.comment.update({
     where: {
       id,

@@ -1,6 +1,18 @@
 import { CommentStatus, PostStatus } from "../../../generated/prisma/enums";
+import { PostWhereInput } from "../../../generated/prisma/models";
 import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IUpdatePostPayLoad } from "./post.interface";
+
+interface IPostQuery extends PostWhereInput {
+  // title?: string;
+  // content?: string;
+
+  searchTerm?: string;
+  limit?: string;
+  page?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
 
 const createPost = async (payload: ICreatePostPayload, userId: string) => {
   const { title, content, thumbnail, isFeatured, status, tags } = payload;
@@ -14,8 +26,107 @@ const createPost = async (payload: ICreatePostPayload, userId: string) => {
 
   return result;
 };
-const allPost = async () => {
+const allPost = async (query: IPostQuery) => {
+  const { title, content, searchTerm, limit, page, sortBy, sortOrder } = query;
   const posts = await prisma.post.findMany({
+    // filter posts by title and content
+    // where: {
+    //   title: "Prisma Transactions Explained",
+    //   content: "Node js",
+    //   tags :{
+    //     has:"typescript node js"
+    //     }
+    // },
+
+    // this approach is not appropriate for searching
+    // where: {
+    //   title: {
+    //     contains: "prISma",
+    //     mode: "insensitive",
+    //   },
+    //   content: {
+    //     contains: "node.js",
+    //     mode: "insensitive",
+    //   },
+    // },
+
+    // this approach is appropriate for searching
+
+    // where: {
+    //   OR: [
+    //     {
+    //       title: {
+    //         contains: "prISma",
+    //         mode: "insensitive",
+    //       },
+    //     },
+    //     {
+    //       content: {
+    //         contains: "node.js",
+    //         mode: "insensitive",
+    //       },
+    //     },
+    //   ],
+    // },
+
+    // combining search(OR) and filter(AND)
+    // where: {
+    //   AND: [
+    //     {
+    //       // searching (OR)
+    //       OR: [
+    //         {
+    //           title: {
+    //             contains: "tutorial",
+    //             mode: "insensitive",
+    //           },
+    //         },
+    //         {
+    //           content: {
+    //             contains: "event",
+    //             mode: "insensitive",
+    //           },
+    //         },
+    //       ],
+    //     },
+    //     // filtering
+    //     {
+    //       title: "Prisma",
+    //     },
+    //     {
+    //       content: "Transactions",
+    //     },
+    //   ],
+    // },
+
+    // pagination
+    // take: 2,
+    // skip: 0,
+    // orderBy: {
+    //   createdAt: "asc",
+    // },
+
+    where: {
+      OR: [
+        {
+          title: {
+            contains: title,
+            mode: "insensitive",
+          },
+        },
+        {
+          content: {
+            contains: content,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+    take: Number(limit),
+    skip: (Number(page) - 1) * Number(limit),
+    // orderBy: {
+    //   sortBy: sortOrder,
+    // },
     include: {
       author: {
         omit: {
@@ -223,62 +334,110 @@ const postStatics = async () => {
 
     const [
       totalPosts,
-      totalPublishedPosts,
-      totalDraftPosts,
-      totalArchivedPosts,
+      postStatusGrp,
+      totalCommentsGrp,
       totalComments,
-      totalApprovedComments,
-      totalRejectedComments,
       totalPostViewsAggregate,
     ] = await Promise.all([
-      await tx.post.count(),
-      await tx.post.count({
-        where: {
-          status: PostStatus.PUBLISHED,
+      tx.post.count(), // total posts
+
+      tx.post.groupBy({
+        // group by post status
+        by: ["status"],
+        _count: {
+          status: true,
         },
       }),
 
-      await tx.post.count({
-        where: {
-          status: PostStatus.DRAFT,
+      //  tx.post.count({
+      //   where: {
+      //     status: PostStatus.PUBLISHED,
+      //   },
+      // }),
+
+      //  tx.post.count({
+      //   where: {
+      //     status: PostStatus.DRAFT,
+      //   },
+      // }),
+
+      //  tx.post.count({
+      //   where: {
+      //     status: PostStatus.ARCHIVED,
+      //   },
+      // }),
+
+      tx.comment.groupBy({
+        // group by comment status
+        by: ["status"],
+        _count: {
+          status: true,
         },
       }),
 
-      await tx.post.count({
-        where: {
-          status: PostStatus.ARCHIVED,
-        },
-      }),
+      tx.comment.count(), // total comments
 
-      await tx.comment.count(),
+      //  tx.comment.count({
+      //   where: {
+      //     status: CommentStatus.APPROVED,
+      //   },
+      // }),
 
-      await tx.comment.count({
-        where: {
-          status: CommentStatus.APPROVED,
-        },
-      }),
-
-      await tx.comment.count({
-        where: {
-          status: CommentStatus.REJECT,
-        },
-      }),
-      await tx.post.aggregate({
+      //  tx.comment.count({
+      //   where: {
+      //     status: CommentStatus.REJECT,
+      //   },
+      // }),
+      tx.post.aggregate({
+        // sum of views
         _sum: {
           views: true,
         },
       }),
     ]);
 
+    // console.log("group by post status", postStatusGrp);
+    const selectPublishedPost = postStatusGrp.filter(
+      (post) => post.status === PostStatus.PUBLISHED,
+    );
+    const selectDraftPost = postStatusGrp.filter(
+      (post) => post.status === PostStatus.DRAFT,
+    );
+    const selectArchivedPost = postStatusGrp.filter(
+      (post) => post.status === PostStatus.ARCHIVED,
+    );
+    const totalPublishedPosts = selectPublishedPost[0]?._count?.status;
+    const totalDraftPosts = selectDraftPost[0]?._count?.status;
+    const totalArchivedPosts = selectArchivedPost[0]?._count?.status;
+
+    const selectApprovedComment = totalCommentsGrp.filter(
+      (comment) => comment.status === CommentStatus.APPROVED,
+    );
+    const selectRejectedComment = totalCommentsGrp.filter(
+      (comment) => comment.status === CommentStatus.REJECT,
+    );
+
+    const totalApprovedComments = selectApprovedComment[0]?._count?.status;
+    const totalRejectedComments = selectRejectedComment[0]?._count?.status;
+
     return {
       totalPosts,
       totalPublishedPosts,
       totalDraftPosts,
       totalArchivedPosts,
-      totalComments,
       totalApprovedComments,
       totalRejectedComments,
+      totalComments,
       totalPostViews: totalPostViewsAggregate._sum.views,
+
+      // totalPosts,
+      // totalPublishedPosts,
+      // totalDraftPosts,
+      // totalArchivedPosts,
+      // totalComments,
+      // totalApprovedComments,
+      // totalRejectedComments,
+      // totalPostViews: totalPostViewsAggregate._sum.views,
     };
   });
 
