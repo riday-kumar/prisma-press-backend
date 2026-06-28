@@ -22,7 +22,20 @@ const allPost = async () => {
           password: true,
         },
       },
-      comments: true,
+      comments: {
+        include: {
+          author: {
+            omit: {
+              id: true,
+              password: true,
+              activeStatus: true,
+              role: true,
+              email: true,
+              updatedAt: true,
+            },
+          },
+        },
+      },
     },
   });
   return posts;

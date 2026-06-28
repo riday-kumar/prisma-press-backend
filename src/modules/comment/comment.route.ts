@@ -17,15 +17,17 @@ route.patch(
   auth(ROLE.USER, ROLE.ADMIN, ROLE.AUTHOR),
   commentController.updateCommentByOwnerController,
 );
-route.delete(
-  "/:commentId",
-  auth(ROLE.USER, ROLE.ADMIN, ROLE.AUTHOR),
-  commentController.deleteCommentByOwnerController,
-);
+
 route.patch(
   "/:commentId/moderate",
   auth(ROLE.ADMIN),
   commentController.moderateCommentController,
+);
+
+route.delete(
+  "/:commentId",
+  auth(ROLE.USER, ROLE.ADMIN, ROLE.AUTHOR),
+  commentController.deleteCommentByOwnerController,
 );
 
 export const commentRoute = route;
