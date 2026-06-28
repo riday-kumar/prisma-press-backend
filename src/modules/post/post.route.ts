@@ -12,9 +12,10 @@ route.get(
   postController.myPostController,
 );
 
+route.get("/stats", auth(ROLE.ADMIN), postController.postStaticsController);
+
 route.get("/:postId", postController.getPostByIdController);
 
-route.get("/stats", auth(ROLE.ADMIN), postController.postStaticsController);
 route.post(
   "/",
   auth(ROLE.ADMIN, ROLE.USER, ROLE.AUTHOR),

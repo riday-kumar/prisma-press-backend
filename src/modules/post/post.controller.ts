@@ -51,7 +51,15 @@ const myPostController = catchAsync(
 );
 
 const postStaticsController = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await postService.postStatics();
+    sendResponse(res, {
+      success: true,
+      statusCode: status.OK,
+      message: "Post statistics retrieved successfully",
+      data: result,
+    });
+  },
 );
 
 const createPostController = catchAsync(
