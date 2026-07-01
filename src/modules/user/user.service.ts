@@ -28,9 +28,9 @@ const registerUserIntoDB = async (payLoad: RegisterUserPayLoad) => {
     },
   });
 
-  if (isUserExists) {
-    throw new Error("User already exists");
-  }
+  // if (isUserExists) {
+  //   throw new Error("User already exists");
+  // }
 
   const hashedPassword = await bcrypt.hash(
     password,
